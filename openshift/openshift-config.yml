@@ -43,18 +43,18 @@ spec:
             - containerPort: 4200
           env:
             - name: NODE_OPTIONS
-              value: "--max-old-space-size=4096"
+              value: "--max-old-space-size=8192"
             - name: NPM_CONFIG_CACHE
               value: "/tmp/npm-cache"
             - name: NPM_CONFIG_LOGLEVEL
               value: "warn"
           resources:
             limits:
+              cpu: "4"
+              memory: "8Gi"
+            requests:
               cpu: "2"
               memory: "4Gi"
-            requests:
-              cpu: "1"
-              memory: "2Gi"
 
 ---
 apiVersion: v1
