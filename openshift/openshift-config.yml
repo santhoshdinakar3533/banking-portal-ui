@@ -1,0 +1,78 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: banking-portal-build
+spec:
+  source:
+    type: Git
+    git:
+      uri: "https://github.com/santhoshdinakar3533/banking-portal-ui.git"
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: "nodejs:18-ubi8"
+        namespace: openshift
+      env:
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=4096"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "banking-portal:latest"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-portal
+  template:
+    metadata:
+      labels:
+        app: banking-portal
+    spec:
+      containers:
+        - name: banking-portal
+          image: image-registry.openshift-image-registry.svc:5000/my-project/banking-portal:latest
+          ports:
+            - containerPort: 4200
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=4096"
+          resources:
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-portal
+spec:
+  selector:
+    app: banking-portal
+  ports:
+    - protocol: TCP
+      port: 4200
+      targetPort: 4200
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: banking-portal-route
+spec:
+  to:
+    kind: Service
+    name: banking-portal
+  port:
+    targetPort: 4200
